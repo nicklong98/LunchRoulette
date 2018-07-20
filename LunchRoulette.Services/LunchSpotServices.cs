@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using LunchRoulette.DatabaseLayer.Context;
 using LunchRoulette.Entities;
+using System.Threading.Tasks;
 
 namespace LunchRoulette.Services
 {
@@ -13,6 +14,18 @@ namespace LunchRoulette.Services
         public LunchSpotServices(LunchRouletteContext context)
         {
             _context = context;
+        }
+
+        public async Task<LunchSpot> CreateLunchSpotAsync(string lunchSpotName, Cuisine cuisine)
+        {
+            var lunchSpot = new LunchRoulette.DatabaseLayer.Entities.LunchSpot
+            {
+                Name = lunchSpotName,
+                CuisineId = cuisine?.Id
+            };
+            await _context.AddAsync(lunchSpot);
+            await _context.SaveChangesAsync();
+            return new LunchSpot(lunchSpot);
         }
 
         public IAsyncEnumerable<LunchSpot> ListLunchSpots()

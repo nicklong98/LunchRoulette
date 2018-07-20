@@ -11,6 +11,7 @@ namespace LunchRoulette.Entities
 
         public Cuisine(LunchRoulette.DatabaseLayer.Entities.Cuisine cuisine)
         {
+            if(cuisine == null) return;
             Id = cuisine.Id;
             Name = cuisine.Name;
         }

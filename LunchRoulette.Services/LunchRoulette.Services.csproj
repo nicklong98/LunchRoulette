@@ -3,6 +3,8 @@
   <ItemGroup>
     <ProjectReference Include="..\LunchRoulette.DatabaseLayer\LunchRoulette.DatabaseLayer.csproj" />
     <ProjectReference Include="..\LunchRoulette.Entities\LunchRoulette.Entities.csproj" />
+    <ProjectReference Include="..\LunchRoulette.Exceptions\LunchRoulette.Exceptions.csproj" />
+    <ProjectReference Include="..\LunchRoulette.Utils\LunchRoulette.Utils.csproj" />
   </ItemGroup>
 
   <ItemGroup>

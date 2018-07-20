@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
 using LunchRoulette.DatabaseLayer.Entities;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace LunchRoulette.DatabaseLayer.Context
 {
@@ -21,6 +22,10 @@ namespace LunchRoulette.DatabaseLayer.Context
         {
             var builder = new DbContextOptionsBuilder<LunchRouletteContext>();
             builder.UseInMemoryDatabase(dbName);
+            builder.ConfigureWarnings(warnings =>
+                warnings.Default(WarningBehavior.Log)
+                        .Ignore(InMemoryEventId.TransactionIgnoredWarning)
+            );
             return new LunchRouletteContext(builder.Options);
         }
 
