@@ -8,6 +8,7 @@ using LunchRoulette.Entities;
 using Microsoft.EntityFrameworkCore;
 using LunchRoulette.Exceptions.CuisineExceptions;
 using LunchRoulette.Utils.StringHelpers;
+using LunchRoulette.Utils.IQueryableHelpers;
 
 namespace LunchRoulette.Services
 {
@@ -46,9 +47,9 @@ namespace LunchRoulette.Services
 
         public async Task<Cuisine> GetCuisineByIdAsync(int cuisineId)
         {
-            var targetCuisine = await (from x in _context.Cuisines where x.Id == cuisineId select x).SingleOrDefaultAsync();
-            if (targetCuisine == null) throw new CuisineNotFoundException();
-            return new Cuisine(targetCuisine);
+            return await (from x in _context.Cuisines where x.Id == cuisineId select new Cuisine(x))
+                .Extend()
+                .SingleOrThrowAsync<CuisineNotFoundException>();
         }
 
         public IAsyncEnumerable<Cuisine> ListCuisines()
@@ -63,12 +64,11 @@ namespace LunchRoulette.Services
 
         public async Task<Cuisine> UpdateCuisineAsync(int cuisineId, Cuisine cuisine)
         {
-            var targetCuisine = await (from x in _context.Cuisines where x.Id == cuisineId select x).SingleOrDefaultAsync();
-            if (targetCuisine == null) throw new CuisineNotFoundException();
+            var targetCuisine = await (from x in _context.Cuisines where x.Id == cuisineId select x).Extend().SingleOrThrowAsync<CuisineNotFoundException>();
             try
             {
                 await _context.Database.BeginTransactionAsync();
-                if(await _context.Cuisines.AnyAsync(x=>x.Name.EqualsIgnoreCase(cuisine.Name))) throw new CuisineException();
+                if (await _context.Cuisines.AnyAsync(x => x.Name.EqualsIgnoreCase(cuisine.Name))) throw new CuisineException();
                 targetCuisine.Name = cuisine.Name;
                 _context.Entry(targetCuisine).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
