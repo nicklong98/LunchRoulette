@@ -84,5 +84,42 @@ namespace LunchRoulette.Services.Tests
             var createdLunchSpot = await services.CreateLunchSpotAsync(createName, cuisine);
             Assert.Equal(expectedName, createdLunchSpot.Name);
         }
+
+        [Theory]
+        [InlineData("LunchSpotUpdateName", "Bob's Burgers", "Ted's Burgers")]
+        public async Task ShouldBeAbleToUpdateNameOnALunchSpot(string dbName, string createName, string updatedName)
+        {
+            var cuisineServices = CreateCuisineServices(dbName);
+            var services = CreateServices(dbName);
+            var cuisine = await cuisineServices.CreateCuisineAsync(Guid.NewGuid().ToString());
+            var createdLunchSpot = await services.CreateLunchSpotAsync(createName, cuisine);
+            var updatedLunchSpot = await services.UpdateLunchSpotAsync(createdLunchSpot.Id, new LunchSpot { Name = updatedName, Cuisine = cuisine });
+            Assert.NotEqual(createdLunchSpot.Name, updatedLunchSpot.Name);
+            Assert.Equal(createdLunchSpot.Id, updatedLunchSpot.Id);
+            Assert.Equal(updatedName, updatedLunchSpot.Name);
+        }
+
+        [Theory]
+        [InlineData("LunchSpotUpdateCuisine", "Italian", "French")]
+        public async Task ShouldBeAbleToUpdateCuisineOnALunchSpot(string dbName, string createCuisine, string updatedCuisine)
+        {
+            var cuisineServices = CreateCuisineServices(dbName);
+            var services = CreateServices(dbName);
+            await cuisineServices.CreateCuisineAsync(createCuisine);
+            var targetCuisine = await cuisineServices.CreateCuisineAsync(updatedCuisine);
+            var createdLunchSpot = await services.CreateLunchSpotAsync(Guid.NewGuid().ToString(), new Cuisine { Name = createCuisine });
+            var updatedLunchSpot = await services.UpdateLunchSpotAsync(createdLunchSpot.Id, 
+                                                                        new LunchSpot 
+                                                                        {
+                                                                            Name = createdLunchSpot.Name,
+                                                                            Cuisine = 
+                                                                                new Cuisine
+                                                                                {
+                                                                                    Name = updatedCuisine
+                                                                                }
+                                                                        });
+            Assert.Equal(createdLunchSpot.Id, updatedLunchSpot.Id);
+            Assert.Equal(updatedLunchSpot.Cuisine.Id, targetCuisine.Id);
+        }
     }
 }

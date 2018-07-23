@@ -8,6 +8,7 @@ using LunchRoulette.Utils.StringHelpers;
 using LunchRoulette.Utils.IQueryableHelpers;
 using LunchRoulette.Exceptions.CuisineExceptions;
 using LunchRoulette.Exceptions.LunchSpotExceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace LunchRoulette.Services
 {
@@ -41,6 +42,21 @@ namespace LunchRoulette.Services
             return await (from x in _context.LunchSpots where x.Id == lunchSpotId select new LunchSpot(x))
                             .Extend()
                             .SingleOrThrowAsync<LunchSpotNotFoundException>();
+        }
+
+        public async Task<LunchSpot> UpdateLunchSpotAsync(int lunchSpotId, LunchSpot lunchSpot)
+        {
+            var targetLunchSpot = await (from x in _context.LunchSpots where x.Id == lunchSpotId select x)
+                                        .Extend()
+                                        .SingleOrThrowAsync<LunchSpotNotFoundException>();
+            targetLunchSpot.Name = lunchSpot.Name.ToTitleCase();
+            var targetCuisine = await _cuisineServices.ListCuisines(x => x.Name.EqualsIgnoreCase(lunchSpot.Cuisine?.Name))
+                                .Extend()
+                                .SingleOrThrowAsync<CuisineNotFoundException>();
+            targetLunchSpot.CuisineId = targetCuisine.Id;
+            _context.Entry(targetLunchSpot).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return new LunchSpot(targetLunchSpot) { Cuisine = targetCuisine };
         }
 
         public IAsyncEnumerable<LunchSpot> ListLunchSpots()

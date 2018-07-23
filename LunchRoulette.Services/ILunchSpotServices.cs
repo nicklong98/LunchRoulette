@@ -9,6 +9,7 @@ namespace LunchRoulette.Services
     {
         Task<LunchSpot> CreateLunchSpotAsync(string lunchSpotName, Cuisine cuisine);
         Task<LunchSpot> GetLunchSpotByIdAsync(int lunchSpotId);
+        Task<LunchSpot> UpdateLunchSpotAsync(int lucnhSpotId, LunchSpot lunchSpot);
 
         IAsyncEnumerable<LunchSpot> ListLunchSpots();
         IAsyncEnumerable<LunchSpot> ListLunchSpots(Func<LunchSpot, bool> filter);
