@@ -27,6 +27,20 @@ namespace LunchRoulette.Services.Tests
             Assert.Equal(currentCount + 1, nextCount);
         }
 
+        [Theory]
+        [InlineData("NullOrEmptyNameTest", "")]
+        [InlineData("NullOrEmptyNameTest", null)]
+        [InlineData("NullOrEmptyNameTest", "     ")]
+        [InlineData("NullOrEmptyNameTest", " ")]
+        [InlineData("NullOrEmptyNameTest", "\n")]
+        [InlineData("NullOrEmptyNameTest", "\r\n")]
+        [InlineData("NullOrEmptyNameTest", "\t")]
+        public async Task CreatingACuisineWithANullOrEmptyNameThrowsCuisineException(string dbName, string cuisineName)
+        {
+            var services = CreateServices(dbName);
+            await Assert.ThrowsAsync<CuisineException>(() => services.CreateCuisineAsync(cuisineName));
+        }
+
         [Fact]
         public async Task CreatingCuisineTranslatesToTitleCase()
         {
