@@ -7,6 +7,7 @@ using LunchRoulette.Entities;
 using LunchRoulette.Utils.StringHelpers;
 using LunchRoulette.Utils.IQueryableHelpers;
 using LunchRoulette.Exceptions.CuisineExceptions;
+using LunchRoulette.Exceptions.LunchSpotExceptions;
 
 namespace LunchRoulette.Services
 {
@@ -25,7 +26,7 @@ namespace LunchRoulette.Services
         {
             var lunchSpot = new LunchRoulette.DatabaseLayer.Entities.LunchSpot
             {
-                Name = lunchSpotName,
+                Name = lunchSpotName.ToTitleCase(),
                 CuisineId = await _cuisineServices.ListCuisines(x=>x.Name.EqualsIgnoreCase(cuisine?.Name)).Select(x=>x.Id)
                     .Extend()
                     .SingleOrThrowAsync<CuisineNotFoundException>()
@@ -33,6 +34,13 @@ namespace LunchRoulette.Services
             await _context.AddAsync(lunchSpot);
             await _context.SaveChangesAsync();
             return new LunchSpot(lunchSpot);
+        }
+
+        public async Task<LunchSpot> GetLunchSpotByIdAsync(int lunchSpotId)
+        {
+            return await (from x in _context.LunchSpots where x.Id == lunchSpotId select new LunchSpot(x))
+                            .Extend()
+                            .SingleOrThrowAsync<LunchSpotNotFoundException>();
         }
 
         public IAsyncEnumerable<LunchSpot> ListLunchSpots()
