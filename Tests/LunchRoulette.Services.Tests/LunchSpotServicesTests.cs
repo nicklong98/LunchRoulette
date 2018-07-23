@@ -121,5 +121,29 @@ namespace LunchRoulette.Services.Tests
             Assert.Equal(createdLunchSpot.Id, updatedLunchSpot.Id);
             Assert.Equal(updatedLunchSpot.Cuisine.Id, targetCuisine.Id);
         }
+
+        [Fact]
+        public async Task UpdatingALunchSpotToANonExistantCuisineShouldThrowACuisineNotFoundException()
+        {
+            string dbName = Guid.NewGuid().ToString();
+            var cuisineServices = CreateCuisineServices(dbName);
+            var services = CreateServices(dbName);
+            var cuisine = await cuisineServices.CreateCuisineAsync(Guid.NewGuid().ToString());
+            var createdLunchSpot = await services.CreateLunchSpotAsync(Guid.NewGuid().ToString(), cuisine);
+            await Assert.ThrowsAsync<CuisineNotFoundException>(
+                () => services.UpdateLunchSpotAsync(createdLunchSpot.Id, 
+                                                    new LunchSpot()
+                                                    { 
+                                                        Name = createdLunchSpot.Name, 
+                                                        Cuisine = new Cuisine { Name = Guid.NewGuid().ToString() } 
+                                                    }));
+        }
+
+        [Fact]
+        public async Task UpdatingANonExistantLunchSpotShouldThrowALunchSpotNotFoundException()
+        {
+            var services = CreateServices();
+            await Assert.ThrowsAsync<LunchSpotNotFoundException>(() => services.UpdateLunchSpotAsync(-1, new LunchSpot()));
+        }
     }
 }
