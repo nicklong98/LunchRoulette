@@ -83,5 +83,10 @@ namespace LunchRoulette.Utils.IQueryableHelpers
         {
             return new QueryableExtender<T>(source);
         }
+
+        public static QueryableExtender<T> Extend<T>(this IAsyncEnumerable<T> source)
+        {
+            return new QueryableExtender<T>(source.ToEnumerable().AsQueryable());
+        }
     }
 }

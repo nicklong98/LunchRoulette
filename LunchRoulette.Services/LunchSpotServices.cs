@@ -1,18 +1,23 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using LunchRoulette.DatabaseLayer.Context;
 using LunchRoulette.Entities;
-using System.Threading.Tasks;
+using LunchRoulette.Utils.StringHelpers;
+using LunchRoulette.Utils.IQueryableHelpers;
+using LunchRoulette.Exceptions.CuisineExceptions;
 
 namespace LunchRoulette.Services
 {
     public class LunchSpotServices : ILunchSpotServices
     {
         private LunchRouletteContext _context { get; }
+        private ICuisineServices _cuisineServices{ get; }
 
-        public LunchSpotServices(LunchRouletteContext context)
+        public LunchSpotServices(ICuisineServices cuisineServices, LunchRouletteContext context)
         {
+            _cuisineServices = cuisineServices;
             _context = context;
         }
 
@@ -21,7 +26,9 @@ namespace LunchRoulette.Services
             var lunchSpot = new LunchRoulette.DatabaseLayer.Entities.LunchSpot
             {
                 Name = lunchSpotName,
-                CuisineId = cuisine?.Id
+                CuisineId = await _cuisineServices.ListCuisines(x=>x.Name.EqualsIgnoreCase(cuisine?.Name)).Select(x=>x.Id)
+                    .Extend()
+                    .SingleOrThrowAsync<CuisineNotFoundException>()
             };
             await _context.AddAsync(lunchSpot);
             await _context.SaveChangesAsync();
