@@ -23,6 +23,7 @@ namespace LunchRoulette.Services
 
         public async Task<Cuisine> CreateCuisineAsync(string cuisineName)
         {
+            if(string.IsNullOrWhiteSpace(cuisineName)) throw new CuisineException();
             try
             {
                 await _context.Database.BeginTransactionAsync();
