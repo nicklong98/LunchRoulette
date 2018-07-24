@@ -15,7 +15,7 @@ namespace LunchRoulette.Services
     public class LunchSpotServices : ILunchSpotServices
     {
         private LunchRouletteContext _context { get; }
-        private ICuisineServices _cuisineServices{ get; }
+        private ICuisineServices _cuisineServices { get; }
 
         public LunchSpotServices(ICuisineServices cuisineServices, LunchRouletteContext context)
         {
@@ -25,21 +25,24 @@ namespace LunchRoulette.Services
 
         public async Task<LunchSpot> CreateLunchSpotAsync(string lunchSpotName, Cuisine cuisine)
         {
+            var targetCuisine = await _cuisineServices.ListCuisines(x => x.Name.EqualsIgnoreCase(cuisine?.Name))
+                                                                    .Extend()
+                                                                    .SingleOrThrowAsync<CuisineNotFoundException>();
             var lunchSpot = new LunchRoulette.DatabaseLayer.Entities.LunchSpot
             {
                 Name = lunchSpotName.ToTitleCase(),
-                CuisineId = await _cuisineServices.ListCuisines(x=>x.Name.EqualsIgnoreCase(cuisine?.Name)).Select(x=>x.Id)
-                    .Extend()
-                    .SingleOrThrowAsync<CuisineNotFoundException>()
+                CuisineId = targetCuisine.Id
             };
             await _context.AddAsync(lunchSpot);
             await _context.SaveChangesAsync();
-            return new LunchSpot(lunchSpot);
+            return new LunchSpot(lunchSpot) { Cuisine = targetCuisine };
         }
 
         public async Task<LunchSpot> GetLunchSpotByIdAsync(int lunchSpotId)
         {
-            return await (from x in _context.LunchSpots where x.Id == lunchSpotId select new LunchSpot(x))
+            return await (from x in _context.LunchSpots where x.Id == lunchSpotId select x)
+                            .Include(x => x.Cuisine)
+                            .Select(x => new LunchSpot(x))
                             .Extend()
                             .SingleOrThrowAsync<LunchSpotNotFoundException>();
         }
@@ -61,12 +64,18 @@ namespace LunchRoulette.Services
 
         public IAsyncEnumerable<LunchSpot> ListLunchSpots()
         {
-            return (from x in _context.LunchSpots select new LunchSpot(x)).ToAsyncEnumerable();
+            return (from x in _context.LunchSpots select x)
+                    .Include(x => x.Cuisine)
+                    .Select(x => new LunchSpot(x))
+                    .ToAsyncEnumerable();
         }
 
         public IAsyncEnumerable<LunchSpot> ListLunchSpots(Func<LunchSpot, bool> filter)
         {
-            return (from x in _context.LunchSpots select new LunchSpot(x)).Where(filter).ToAsyncEnumerable();
+            return (from x in _context.LunchSpots select x)
+                    .Include(x => x.Cuisine)
+                    .Select(x => new LunchSpot(x))
+                    .Where(filter).ToAsyncEnumerable();
         }
     }
 }

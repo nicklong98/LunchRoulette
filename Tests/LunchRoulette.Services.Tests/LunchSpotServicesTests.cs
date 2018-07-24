@@ -25,7 +25,7 @@ namespace LunchRoulette.Services.Tests
         }
 
         [Fact]
-        public async Task CreatingALunchSpotWithANullCuisineIsAllowed()
+        public async Task CreatingALunchSpotWithANullCuisineThrowsCuisineNotFoundException()
         {
             var services = CreateServices();
             await Assert.ThrowsAsync<CuisineNotFoundException>(() =>
@@ -36,7 +36,7 @@ namespace LunchRoulette.Services.Tests
         public async Task CreatingALunchSpotWithANonExistantCuisineThrowsACuisineNotFoundException()
         {
             var services = CreateServices();
-            await Assert.ThrowsAsync<CuisineNotFoundException>(() => 
+            await Assert.ThrowsAsync<CuisineNotFoundException>(() =>
                 services.CreateLunchSpotAsync(Guid.NewGuid().ToString(), new Cuisine { Name = Guid.NewGuid().ToString() }));
         }
 
@@ -67,7 +67,9 @@ namespace LunchRoulette.Services.Tests
             var cuisineServices = CreateCuisineServices(dbName);
             var cuisine = await cuisineServices.CreateCuisineAsync(Guid.NewGuid().ToString());
             var lunchSpot = await services.CreateLunchSpotAsync(Guid.NewGuid().ToString(), cuisine);
-            Assert.NotNull(await services.GetLunchSpotByIdAsync(lunchSpot.Id));
+            var retrievedLunchSpot = await services.GetLunchSpotByIdAsync(lunchSpot.Id);
+            Assert.NotNull(retrievedLunchSpot);
+            Assert.NotNull(retrievedLunchSpot.Cuisine);
         }
 
         [Theory]
@@ -83,6 +85,7 @@ namespace LunchRoulette.Services.Tests
             var cuisine = await cuisineServices.CreateCuisineAsync(Guid.NewGuid().ToString());
             var createdLunchSpot = await services.CreateLunchSpotAsync(createName, cuisine);
             Assert.Equal(expectedName, createdLunchSpot.Name);
+            Assert.NotNull(createdLunchSpot.Cuisine);
         }
 
         [Theory]
@@ -108,11 +111,11 @@ namespace LunchRoulette.Services.Tests
             await cuisineServices.CreateCuisineAsync(createCuisine);
             var targetCuisine = await cuisineServices.CreateCuisineAsync(updatedCuisine);
             var createdLunchSpot = await services.CreateLunchSpotAsync(Guid.NewGuid().ToString(), new Cuisine { Name = createCuisine });
-            var updatedLunchSpot = await services.UpdateLunchSpotAsync(createdLunchSpot.Id, 
-                                                                        new LunchSpot 
+            var updatedLunchSpot = await services.UpdateLunchSpotAsync(createdLunchSpot.Id,
+                                                                        new LunchSpot
                                                                         {
                                                                             Name = createdLunchSpot.Name,
-                                                                            Cuisine = 
+                                                                            Cuisine =
                                                                                 new Cuisine
                                                                                 {
                                                                                     Name = updatedCuisine
@@ -131,11 +134,11 @@ namespace LunchRoulette.Services.Tests
             var cuisine = await cuisineServices.CreateCuisineAsync(Guid.NewGuid().ToString());
             var createdLunchSpot = await services.CreateLunchSpotAsync(Guid.NewGuid().ToString(), cuisine);
             await Assert.ThrowsAsync<CuisineNotFoundException>(
-                () => services.UpdateLunchSpotAsync(createdLunchSpot.Id, 
+                () => services.UpdateLunchSpotAsync(createdLunchSpot.Id,
                                                     new LunchSpot()
-                                                    { 
-                                                        Name = createdLunchSpot.Name, 
-                                                        Cuisine = new Cuisine { Name = Guid.NewGuid().ToString() } 
+                                                    {
+                                                        Name = createdLunchSpot.Name,
+                                                        Cuisine = new Cuisine { Name = Guid.NewGuid().ToString() }
                                                     }));
         }
 
@@ -144,6 +147,36 @@ namespace LunchRoulette.Services.Tests
         {
             var services = CreateServices();
             await Assert.ThrowsAsync<LunchSpotNotFoundException>(() => services.UpdateLunchSpotAsync(-1, new LunchSpot()));
+        }
+
+        [Theory]
+        [InlineData("FilteringByName", "Thai Flavor", "Thai")]
+        [InlineData("FilteringByName", "Home", "American")]
+        [InlineData("FilteringByName", "El Paso", "Mexican")]
+        [InlineData("FilteringByName", "Subway", "Sandwich")]
+        public async Task FilteringByNameShouldReturnOneResult(string dbName, string lunchSpotName, string cuisineName)
+        {
+            var cuisineServices = CreateCuisineServices(dbName);
+            var services = CreateServices(dbName);
+            var cuisine = await cuisineServices.CreateCuisineAsync(cuisineName);
+            await services.CreateLunchSpotAsync(lunchSpotName, cuisine);
+            var foundLunchSpot = services.ListLunchSpots(x => x.Name.EqualsIgnoreCase(lunchSpotName));
+            Assert.All(foundLunchSpot.ToEnumerable(), x => Assert.NotNull(x.Cuisine));
+            Assert.Equal(1, await services.ListLunchSpots(x => x.Name.EqualsIgnoreCase(lunchSpotName)).Count());
+        }
+
+        [Theory]
+        [InlineData("FilteringByCuisine", "Thai Flavor", "Thai")]
+        [InlineData("FilteringByCuisine", "Home", "American")]
+        [InlineData("FilteringByCuisine", "El Paso", "Mexican")]
+        [InlineData("FilteringByCuisine", "Subway", "Sandwich")]
+        public async Task FilteringByCuisineShouldReturnOneResult(string dbName, string lunchSpotName, string cuisineName)
+        {
+            var cuisineServices = CreateCuisineServices(dbName);
+            var services = CreateServices(dbName);
+            await cuisineServices.CreateCuisineAsync(cuisineName);
+            await services.CreateLunchSpotAsync(lunchSpotName, new Cuisine { Name = cuisineName });
+            Assert.Equal(1, await services.ListLunchSpots(x => x.Cuisine.Name.EqualsIgnoreCase(cuisineName)).Count());
         }
     }
 }
