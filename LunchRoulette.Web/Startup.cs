@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,12 +12,30 @@ namespace LunchRoulette.Web
 {
     public class Startup
     {
+
+        private enum DatabaseType
+        {
+            Postgres,
+            InMemory
+        }
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
+
+        private void InitDb(DatabaseType dbType, string connectionString)
+        {
+            switch (dbType)
+            {
+                case DatabaseType.Postgres:
+                    using (var context = LunchRoulette.DatabaseLayer.Context.LunchRouletteContextFactory.AsPostgresql(connectionString))
+                        context.Database.Migrate();
+                    break;
+            }
+        }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -27,6 +47,30 @@ namespace LunchRoulette.Web
             {
                 configuration.RootPath = "ClientApp/build";
             });
+
+            DatabaseType dbType = System.Enum.Parse<DatabaseType>(Configuration.GetValue<string>("Data:DatabaseType"));
+            string connectionString = Configuration.GetValue<string>("Data:ConnectionString");
+            InitDb(dbType, connectionString);
+
+            services.AddDbContext<LunchRoulette.DatabaseLayer.Context.LunchRouletteContext>(optionsBuilder =>
+            {
+                switch (dbType)
+                {
+                    case DatabaseType.InMemory:
+                        optionsBuilder.UseInMemoryDatabase(connectionString);
+                        optionsBuilder.ConfigureWarnings(warnings =>
+                            warnings.Default(WarningBehavior.Log)
+                                    .Ignore(InMemoryEventId.TransactionIgnoredWarning)
+                        );
+                        break;
+                    case DatabaseType.Postgres:
+                        optionsBuilder.UseNpgsql(connectionString);
+                        break;
+                }
+            });
+            
+
+            services.AddSingleton(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,0 +1,18 @@
+version: "3"
+services:
+  web:
+    image: nicklong98/lunchroulette_web:0.0.1-debug
+    build:
+      dockerfile: ./LunchRoulette.Web/debug.dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: 'Development'
+    depends_on:
+      - db
+    ports:
+      - 80
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: 'lunch.123'
+    ports:
+      - 5432:5432
