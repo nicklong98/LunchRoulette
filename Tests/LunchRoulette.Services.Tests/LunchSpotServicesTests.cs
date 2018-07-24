@@ -96,7 +96,7 @@ namespace LunchRoulette.Services.Tests
             var services = CreateServices(dbName);
             var cuisine = await cuisineServices.CreateCuisineAsync(Guid.NewGuid().ToString());
             var createdLunchSpot = await services.CreateLunchSpotAsync(createName, cuisine);
-            var updatedLunchSpot = await services.UpdateLunchSpotAsync(createdLunchSpot.Id, new LunchSpot { Name = updatedName, Cuisine = cuisine });
+            var updatedLunchSpot = await services.UpdateLunchSpotAsync(createdLunchSpot.Id, new LunchSpot(updatedName, cuisine));
             Assert.NotEqual(createdLunchSpot.Name, updatedLunchSpot.Name);
             Assert.Equal(createdLunchSpot.Id, updatedLunchSpot.Id);
             Assert.Equal(updatedName, updatedLunchSpot.Name);
@@ -110,17 +110,8 @@ namespace LunchRoulette.Services.Tests
             var services = CreateServices(dbName);
             await cuisineServices.CreateCuisineAsync(createCuisine);
             var targetCuisine = await cuisineServices.CreateCuisineAsync(updatedCuisine);
-            var createdLunchSpot = await services.CreateLunchSpotAsync(Guid.NewGuid().ToString(), new Cuisine { Name = createCuisine });
-            var updatedLunchSpot = await services.UpdateLunchSpotAsync(createdLunchSpot.Id,
-                                                                        new LunchSpot
-                                                                        {
-                                                                            Name = createdLunchSpot.Name,
-                                                                            Cuisine =
-                                                                                new Cuisine
-                                                                                {
-                                                                                    Name = updatedCuisine
-                                                                                }
-                                                                        });
+            var createdLunchSpot = await services.CreateLunchSpotAsync(Guid.NewGuid().ToString(), new Cuisine(updatedCuisine));
+            var updatedLunchSpot = await services.UpdateLunchSpotAsync(createdLunchSpot.Id, new LunchSpot(createdLunchSpot.Name, targetCuisine));
             Assert.Equal(createdLunchSpot.Id, updatedLunchSpot.Id);
             Assert.Equal(updatedLunchSpot.Cuisine.Id, targetCuisine.Id);
         }
@@ -134,12 +125,8 @@ namespace LunchRoulette.Services.Tests
             var cuisine = await cuisineServices.CreateCuisineAsync(Guid.NewGuid().ToString());
             var createdLunchSpot = await services.CreateLunchSpotAsync(Guid.NewGuid().ToString(), cuisine);
             await Assert.ThrowsAsync<CuisineNotFoundException>(
-                () => services.UpdateLunchSpotAsync(createdLunchSpot.Id,
-                                                    new LunchSpot()
-                                                    {
-                                                        Name = createdLunchSpot.Name,
-                                                        Cuisine = new Cuisine { Name = Guid.NewGuid().ToString() }
-                                                    }));
+                () => services.UpdateLunchSpotAsync(createdLunchSpot.Id, 
+                                                    new LunchSpot(createdLunchSpot.Name, new Cuisine(Guid.NewGuid().ToString()))));
         }
 
         [Fact]
@@ -176,7 +163,9 @@ namespace LunchRoulette.Services.Tests
             var services = CreateServices(dbName);
             await cuisineServices.CreateCuisineAsync(cuisineName);
             await services.CreateLunchSpotAsync(lunchSpotName, new Cuisine { Name = cuisineName });
-            Assert.Equal(1, await services.ListLunchSpots(x => x.Cuisine.Name.EqualsIgnoreCase(cuisineName)).Count());
+            var filteredLunchSpots = services.ListLunchSpots(x => x.Cuisine.Name.EqualsIgnoreCase(cuisineName));
+            Assert.Equal(1, await filteredLunchSpots.Count());
+            Assert.All(filteredLunchSpots.ToEnumerable(), x => Assert.False(string.IsNullOrWhiteSpace(x.Name)));
         }
     }
 }

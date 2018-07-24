@@ -9,6 +9,11 @@ namespace LunchRoulette.Entities
 
         public Cuisine() { }
 
+        public Cuisine(string cuisineName)
+        {
+            Name = cuisineName;
+        }
+
         public Cuisine(LunchRoulette.DatabaseLayer.Entities.Cuisine cuisine)
         {
             if(cuisine == null) return;
@@ -24,6 +29,12 @@ namespace LunchRoulette.Entities
         public Cuisine Cuisine { get; set; }
 
         public LunchSpot() { }
+
+        public LunchSpot(string lunchSpotName, Cuisine cuisine)
+        {
+            Name = lunchSpotName;
+            Cuisine = cuisine;
+        }
 
         public LunchSpot(LunchRoulette.DatabaseLayer.Entities.LunchSpot lunchSpot)
         {
