@@ -1,0 +1,7 @@
+version: "3"
+services: 
+  web:
+    image: nicklong98/lunchroulette_web:0.0.1
+    build: 
+      context: ./
+      dockerfile: LunchRoulette.Web/Dockerfile
