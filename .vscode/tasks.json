@@ -10,6 +10,20 @@
                 "${workspaceFolder}/LunchRoulette.Web/LunchRoulette.Web.csproj"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "watch tests",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "--project",
+                "${workspaceFolder}/Tests/LunchRoulette.Services.Tests/LunchRoulette.Services.Tests.csproj",
+                "test",
+                "/p:CollectCoverage=true",
+                "/p:CoverletOutputFormat=lcov",
+                "/p:CoverletOutput=${workspaceFolder}/Tests/LunchRoulette.Services.Tests/lcov.info"
+            ]
         }
     ]
 }
