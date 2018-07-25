@@ -1,10 +1,12 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace LunchRoulette.Entities
 {
     public class Cuisine
     {
         public int Id { get; set; }
+        [Required]
         public string Name { get; set; }
 
         public Cuisine() { }
@@ -19,6 +21,11 @@ namespace LunchRoulette.Entities
             if(cuisine == null) return;
             Id = cuisine.Id;
             Name = cuisine.Name;
+        }
+
+        public override string ToString()
+        {
+            return Newtonsoft.Json.JsonConvert.SerializeObject(this);
         }
     }
 
