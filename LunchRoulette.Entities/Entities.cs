@@ -6,7 +6,6 @@ namespace LunchRoulette.Entities
     public class Cuisine
     {
         public int Id { get; set; }
-        [Required]
         public string Name { get; set; }
 
         public Cuisine() { }

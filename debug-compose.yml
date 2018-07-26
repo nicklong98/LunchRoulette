@@ -5,7 +5,7 @@ services:
     build:
       dockerfile: ./LunchRoulette.Web/debug.dockerfile
     environment:
-      ASPNETCORE_ENVIRONMENT: 'Development'
+      ASPNETCORE_ENVIRONMENT: 'Debug'
     depends_on:
       - db
     ports:
