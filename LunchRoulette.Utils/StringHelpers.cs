@@ -13,5 +13,10 @@ namespace LunchRoulette.Utils.StringHelpers
         {
             return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(s);
         }
+
+        public static bool ContainsIgnoreCase(this string s1, string s2)
+        {
+            return s2 != null && s1.ToLowerInvariant().Contains(s2.ToLowerInvariant());
+        }
     }
 }
