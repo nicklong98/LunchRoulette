@@ -68,7 +68,9 @@ namespace LunchRoulette.Web
                         break;
                 }
             });
-            
+
+            services.AddTransient<LunchRoulette.Services.ICuisineServices, LunchRoulette.Services.CuisineServices>();
+            services.AddTransient<LunchRoulette.Services.ILunchSpotServices, LunchRoulette.Services.LunchSpotServices>();
 
             services.AddSingleton(Configuration);
         }

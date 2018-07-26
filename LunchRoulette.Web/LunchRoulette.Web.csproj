@@ -36,6 +36,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LunchRoulette.DatabaseLayer\LunchRoulette.DatabaseLayer.csproj" />
+    <ProjectReference Include="..\LunchRoulette.Services\LunchRoulette.Services.csproj" />
+    <ProjectReference Include="..\LunchRoulette.Utils\LunchRoulette.Utils.csproj" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
