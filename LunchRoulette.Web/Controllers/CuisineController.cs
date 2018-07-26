@@ -19,8 +19,8 @@ namespace LunchRoulette.Web.Controllers
     [Route("api/[controller]")]
     public class CuisineController : Controller
     {
-        private ICuisineServices _cuisineServices{ get; }
-        private ILogger<CuisineController> _logger{ get; }
+        private ICuisineServices _cuisineServices { get; }
+        private ILogger<CuisineController> _logger { get; }
 
         public CuisineController(ICuisineServices cuisineServices, ILogger<CuisineController> logger)
         {
@@ -43,7 +43,7 @@ namespace LunchRoulette.Web.Controllers
         public async Task<IActionResult> GetCuisineById(GetCuisineModel model)
         {
             _logger.LogTrace($"Recieved request to get cuisine with id {model.CuisineId}");
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 _logger.LogWarning($"GetCuisineModel is invalid");
                 var errorResponse = ModelState.GenerateErrorModel();
@@ -59,7 +59,7 @@ namespace LunchRoulette.Web.Controllers
                 _logger.LogOk(fetchedCuisine);
                 return Ok(fetchedCuisine);
             }
-            catch(CuisineNotFoundException)
+            catch (CuisineNotFoundException)
             {
                 _logger.LogWarning($"Cusine with id {model.CuisineId} doesn't exist");
                 var errorResponse = new ErrorModel { Message = $"The cuisine with id {model.CuisineId} doesn't exist" };
@@ -68,11 +68,11 @@ namespace LunchRoulette.Web.Controllers
             }
         }
 
-        [HttpGet("{cuisineName}")]
+        [HttpGet("search/{cuisineName}")]
         public async Task<IActionResult> SearchCuisines([Bind]SearchCuisinesModel model)
         {
             _logger.LogTrace($"Recieved search request: {model.CuisineName}");
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 _logger.LogWarning($"Recieved invalid search cuisine request: {model.CuisineName}");
                 var errorResponse = ModelState.GenerateErrorModel();
@@ -81,17 +81,17 @@ namespace LunchRoulette.Web.Controllers
                 return BadRequest(errorResponse);
             }
             _logger.LogTrace($"Searching cuisines by name {model.CuisineName}");
-            var cuisines = await _cuisineServices.ListCuisines(x => x.Name.EqualsIgnoreCase(model.CuisineName)).ToList();
+            var cuisines = await _cuisineServices.ListCuisines(x => x.Name.ContainsIgnoreCase(model.CuisineName)).ToList();
             _logger.LogInformation($"Got {cuisines.Count} cuisines with search {model.CuisineName}");
             _logger.LogOk(Newtonsoft.Json.JsonConvert.SerializeObject(cuisines));
             return Ok(cuisines);
         }
 
-        [HttpPost("{cuisineName}")]
+        [HttpPost("create/{cuisineName}")]
         public async Task<IActionResult> CreateCuisine([Bind]CreateCuisineModel model)
         {
             _logger.LogTrace($"Recieved request to create cuisine named {model.CuisineName}");
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 _logger.LogWarning($"Invalid creation request for cuisine named {model.CuisineName}");
                 var errorResponse = ModelState.GenerateErrorModel();
@@ -106,11 +106,11 @@ namespace LunchRoulette.Web.Controllers
             return Ok(cuisine);
         }
 
-        [HttpPut("{cuisineId}/{cuisineName}")]
+        [HttpPut("update/{cuisineId}/{cuisineName}")]
         public async Task<IActionResult> UpdateCuisine([Bind]UpdateCuisineModel model)
         {
             _logger.LogTrace($"Recieved request to update cuisine. Model: {Newtonsoft.Json.JsonConvert.SerializeObject(model)}");
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 _logger.LogWarning($"Recieved invalid update cuisine model: {Newtonsoft.Json.JsonConvert.SerializeObject(model)}");
                 var errorResponse = ModelState.GenerateErrorModel();
@@ -126,15 +126,15 @@ namespace LunchRoulette.Web.Controllers
                 _logger.LogOk(updatedCuisine);
                 return Ok(updatedCuisine);
             }
-            catch(CuisineNotFoundException)
+            catch (CuisineNotFoundException)
             {
                 var errorResponse = new ErrorModel { Message = $"The cuisine with id {model.CuisineId} doesn't exist" };
                 _logger.LogNotFound(errorResponse);
                 return NotFound(errorResponse);
             }
-            catch(CuisineException)
+            catch (CuisineException)
             {
-                var errorResponse = new ErrorModel { Message = $"There was an error updating cuisine with id {model.CuisineId}."};
+                var errorResponse = new ErrorModel { Message = $"There was an error updating cuisine with id {model.CuisineId}." };
                 _logger.LogBadRequest(errorResponse);
                 return BadRequest(errorResponse);
             }
