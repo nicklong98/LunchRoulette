@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace LunchRoulette.Web
 {
@@ -72,6 +73,11 @@ namespace LunchRoulette.Web
             services.AddTransient<LunchRoulette.Services.ICuisineServices, LunchRoulette.Services.CuisineServices>();
             services.AddTransient<LunchRoulette.Services.ILunchSpotServices, LunchRoulette.Services.LunchSpotServices>();
 
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
+            });
+
             services.AddSingleton(Configuration);
         }
 
@@ -91,6 +97,13 @@ namespace LunchRoulette.Web
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
 
             app.UseMvc(routes =>
             {
