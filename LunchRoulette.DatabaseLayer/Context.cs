@@ -38,7 +38,7 @@ namespace LunchRoulette.DatabaseLayer.Context
 
         public LunchRouletteContext CreateDbContext(string[] args)
         {
-            return LunchRouletteContextFactory.AsPostgresql(args.FirstOrDefault());
+            return LunchRouletteContextFactory.AsPostgresql(args.FirstOrDefault() ?? Guid.NewGuid().ToString());
         }
     }
 }
