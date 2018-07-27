@@ -3,15 +3,17 @@ using System;
 using LunchRoulette.DatabaseLayer.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace LunchRoulette.DatabaseLayer.Migrations
 {
     [DbContext(typeof(LunchRouletteContext))]
-    partial class LunchRouletteContextModelSnapshot : ModelSnapshot
+    [Migration("20180727141009_AddedRating")]
+    partial class AddedRating
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
